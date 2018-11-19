@@ -1,5 +1,4 @@
 
-package iProlog;
 import java.util.*;
 
 final class IMap<K> implements java.io.Serializable {
@@ -133,7 +132,6 @@ final class IMap<K> implements java.io.Serializable {
     return Arrays.toString(is);
   }
 
-  /*
   public static void main(final String[] args) {
     final IMap<Integer>[] imaps = create(3);
     put(imaps, 0, 10, 100);
@@ -161,7 +159,7 @@ final class IMap<K> implements java.io.Serializable {
     //final int[] keys = { 10, 20, 30 };
     //Main.pp("get=" + show(get(imaps, keys)));
 
-
+    /*
     final IMap<Integer>[] m = create(4);
     Engine.put(m, new int[] { -3, -4, 0, 0 }, 0);
     Engine.put(m, new int[] { -3, -21, 0, -21 }, 1);
@@ -172,8 +170,8 @@ final class IMap<K> implements java.io.Serializable {
     Main.pp("ks=" + Arrays.toString(ks));
     
     Main.pp("get=" + show(get(m, ks)));
-
-  }*/
+    */
+  }
 
 }
 

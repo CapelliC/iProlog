@@ -1,5 +1,4 @@
 
-package iProlog;
 class IntList {
 
   private final int head;

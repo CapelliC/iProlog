@@ -1,4 +1,3 @@
-package iProlog;
 import java.util.ArrayList;
 
 class ObStack<T> extends ArrayList<T> {
@@ -16,5 +15,18 @@ class ObStack<T> extends ArrayList<T> {
 
   final T peek() {
     return get(this.size() - 1);
+  }
+
+  @Override
+  public String toString() {
+      String s = "{";
+      boolean first = true;
+      for (T o: this) {
+          if (!first)
+             s += ",";
+          first = false;
+          s += o.toString();
+      }
+      return s + "}";
   }
 }

@@ -1,5 +1,5 @@
+import java.util.Arrays;
 
-package iProlog;
 /**
  * representation of a clause
  */
@@ -17,4 +17,9 @@ class Clause {
   final int base;
   final int neck;
   final int[] xs;
+  
+  @Override
+  public String toString() {
+      return "Clause {" + "len:" + len + ", hgs:" + Arrays.toString(hgs) + ", base:" + base + ", neck:" + neck + ", xs:" + Arrays.toString(xs) + "}";
+  }
 }

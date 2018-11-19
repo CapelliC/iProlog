@@ -2,7 +2,7 @@
 /**
 Dynamic Stack for int data.
  */
-package iProlog;
+
 import java.util.Arrays;
 
 class IntStack {
@@ -43,7 +43,7 @@ class IntStack {
   }
 
   /**
-   * Pushes an element - top is incremented first than the
+   * Pushes an element - top is incremented frirst than the
    * element is assigned. This means top point to the last assigned
    * element - which can be returned with peek().
    */

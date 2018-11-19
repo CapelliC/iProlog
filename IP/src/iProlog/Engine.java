@@ -1,4 +1,3 @@
-package iProlog;
 import java.util.*;
 
 /**
@@ -265,7 +264,7 @@ class Engine {
       for (final String[] ws : Rss) {
 
         // head or body element starts here
-
+//trace("ws", Arrays.toString(ws));
         final int l = ws.length;
         gs.push(tag(R, k++));
         cs.push(tag(A, l));
@@ -426,12 +425,14 @@ class Engine {
    * above savedTop
    */
   private void unwindTrail(final int savedTop) {
+//trace("unwindTrail", savedTop, this.trail);
     while (savedTop < trail.getTop()) {
       final int href = trail.pop();
       // assert href is var
 
       setRef(href, href);
     }
+//trace("after unwindTrail", this.heap2s());
   }
 
   /**
@@ -440,13 +441,27 @@ class Engine {
    * non-variable cell
    */
   final private int deref(int x) {
+//trace("deref", x, tagOf(x), detag(x));
     while (isVAR(x)) {
       final int r = getRef(x);
+//trace("r", r, tagOf(r), detag(r));
       if (r == x) {
         break;
       }
       x = r;
     }
+    /*
+    switch (tagOf(x)) {
+      case V:
+      case R:
+      case C:
+      case N:
+      break;
+      default:
+        pp("unexpected deref=" + showCell(x));
+    }
+    */
+//trace("x", x, tagOf(x), detag(x));
     return x;
   }
 
@@ -539,6 +554,7 @@ class Engine {
       }
       rs[i] = detag(x);
     }
+    //Main.println("");
     return rs;
   }
 
@@ -601,8 +617,8 @@ class Engine {
   }
 
   /**
-  * to be overridden as a printer of a spine
-  */
+   * to be overridden as a printer of a spine
+   */
   void ppc(final Spine C) {
     // override
   }
@@ -627,39 +643,51 @@ class Engine {
    * to trail bindigs below a given heap address "base"
    */
   final private boolean unify(final int base) {
+//trace("unify", base, this.heap2s(), this.ustack);
     while (!ustack.isEmpty()) {
+//trace("ustack", ustack);
       final int x1 = deref(ustack.pop());
       final int x2 = deref(ustack.pop());
+//trace("x1,x2", x1,x2);
       if (x1 != x2) {
         final int t1 = tagOf(x1);
         final int t2 = tagOf(x2);
         final int w1 = detag(x1);
         final int w2 = detag(x2);
-
+//trace("a", x1,x2,t1,t2,w1,w2);
         if (isVAR(x1)) { /* unb. var. v1 */
+//trace("b");
           if (isVAR(x2) && w2 > w1) { /* unb. var. v2 */
             heap[w2] = x1;
+//trace("c", heap2s());
             if (w2 <= base) {
               trail.push(x2);
+//trace("d", trail);
             }
           } else { // x2 nonvar or older
             heap[w1] = x2;
+//trace("e", heap2s());
             if (w1 <= base) {
               trail.push(x1);
+//trace("f", trail);
             }
           }
         } else if (isVAR(x2)) { /* x1 is NONVAR */
           heap[w2] = x1;
+//trace("g", heap2s());
           if (w2 <= base) {
             trail.push(x2);
+//trace("h", trail);
           }
         } else if (R == t1 && R == t2) { // both should be R
           if (!unify_args(w1, w2))
             return false;
+//trace("i", this.heap2s());
         } else
           return false;
       }
     }
+//trace("true");
     return true;
   }
 
@@ -669,6 +697,7 @@ class Engine {
     // both should be A
     final int n1 = detag(v1);
     final int n2 = detag(v2);
+//trace("unify_args:", w1,w2,v1,v2,n1,n2, heap2s());
     if (n1 != n2)
       return false;
     final int b1 = 1 + w1;
@@ -683,7 +712,9 @@ class Engine {
       }
       ustack.push(u2);
       ustack.push(u1);
+//trace("ustack:", ustack);
     }
+//trace("TRUE unify_args");
     return true;
   }
 
@@ -759,13 +790,15 @@ class Engine {
   /**
    * makes, if needed, registers associated to top goal of a Spine
    * these registers will be reused when matching with candidate clauses
-   * note that xs contains dereferenced cells - this is done once for
+   * note that regs contains dereferenced cells - this is done once for
    * each goal's toplevel subterms
    */
-  final private void makeIndexArgs(final Spine G, final int goal) {
+  final private void makeIndexArgs(final Spine G) {
+//trace("makeIndexArgs:", G.toString());
+    final int goal = IntList.head(G.gs);
+//trace("goal:", goal);
     if (null != G.xs)
       return;
-
     final int p = 1 + detag(goal);
     final int n = Math.min(MAXIND, detag(getRef(goal)));
 
@@ -775,13 +808,13 @@ class Engine {
       final int cell = deref(heap[p + i]);
       xs[i] = cell2index(cell);
     }
-
     G.xs = xs;
-
+//trace("imaps:", imaps);
     if (null == imaps)
       return;
     final int[] cs = IMap.get(imaps, vmaps, xs);
     G.cs = cs;
+trace("G.cs:", G.cs);
   }
 
   final private int[] getIndexables(final int ref) {
@@ -792,6 +825,7 @@ class Engine {
       final int cell = deref(heap[p + i]);
       xs[i] = cell2index(cell);
     }
+//trace("getIndexables", ref, ":", Arrays.toString(xs));
     return xs;
   }
 
@@ -814,12 +848,14 @@ class Engine {
   /**
    * tests if the head of a clause, not yet copied to the heap
    * for execution could possibly match the current goal, an
-   * abstraction of which has been place in xs
+   * abstraction of which has been place in regs
    */
   private final boolean match(final int[] xs, final Clause C0) {
+//trace("match", Arrays.toString(xs), C0);
     for (int i = 0; i < MAXIND; i++) {
       final int x = xs[i];
       final int y = C0.xs[i];
+//trace("i,x,y", i,x,y);
       if (0 == x || 0 == y) {
         continue;
       }
@@ -841,35 +877,42 @@ class Engine {
     final int ttop = trail.getTop();
     final int htop = getTop();
     final int base = htop + 1;
+//trace("unfold start", this.trail, ttop, htop, base);
 
-    final int goal = IntList.head(G.gs);
-
-    makeIndexArgs(G, goal);
+    makeIndexArgs(G);
+//trace("after makeIndexArgs", G);
 
     final int last = G.cs.length;
     for (int k = G.k; k < last; k++) {
       final Clause C0 = clauses[G.cs[k]];
+//trace("unfold", k, C0);
 
-      if (!match(G.xs, C0))
+      if (!match(G.xs, C0)) {
+//trace("!match");
         continue;
+      }
 
       final int base0 = base - C0.base;
       final int b = tag(V, base0);
       final int head = pushHead(b, C0);
+//trace("match", base0, b, head);
 
       ustack.clear(); // set up unification stack
 
       ustack.push(head);
-      ustack.push(goal);
+      ustack.push(IntList.head(G.gs));
 
       if (!unify(base)) {
         unwindTrail(ttop);
         setTop(htop);
         continue;
       }
+
       final int[] gs = pushBody(b, head, C0);
+//trace("gs", Arrays.toString(gs), G);
       final IntList newgs = IntList.tail(IntList.app(gs, IntList.tail(G.gs)));
       G.k = k + 1;
+//trace("newgs", newgs);
       if (!IntList.isEmpty(newgs))
         return new Spine(gs, base, IntList.tail(G.gs), ttop, 0, cls);
       else
@@ -894,8 +937,11 @@ class Engine {
     final int base = size();
 
     final Clause G = getQuery();
+//trace("G", G, trail);
     final Spine Q = new Spine(G.hgs, base, IntList.empty, trail.getTop(), 0, cls);
+//trace("Q " + Q);
     spines.push(Q);
+//trace("spines " + spines);
     return Q;
   }
 
@@ -912,9 +958,9 @@ class Engine {
    * detects availability of alternative clauses for the
    * top goal of this spine
    */
-  final private boolean hasClauses(final Spine S) {
-    return S.k < S.cs.length;
-  }
+  //final private boolean hasClauses(final Spine S) {
+  //  return S.k < S.cs.length;
+  //}
 
   /**
    * true when there are no more goals left to solve
@@ -942,17 +988,24 @@ class Engine {
    * returns null
    */
   final Spine yield() {
+//trace("spines", spines);
     while (!spines.isEmpty()) {
       final Spine G = spines.peek();
+//trace("G", G);
+      /*
       if (!hasClauses(G)) {
         popSpine(); // no clauses left
         continue;
       }
+      */
+
       final Spine C = unfold(G);
+//trace("unfolded C", C);
       if (null == C) {
         popSpine(); // no matches
         continue;
       }
+
       if (hasGoals(C)) {
         spines.push(C);
         continue;
@@ -968,7 +1021,9 @@ class Engine {
    * returns an external "human readable" representation of the answer
    */
   Object ask() {
+//trace("before yield", this.heap2s());
     query = yield();
+//trace("after yield", this.heap2s());
     if (null == query)
       return null;
     final int res = answer(query.ttop).hd;
@@ -982,16 +1037,16 @@ class Engine {
    * generated by this engine
    */
   void run() {
+//trace("run");
     long ctr = 0L;
     for (;; ctr++) {
       final Object A = ask();
       if (null == A) {
         break;
       }
-      if(ctr<5) Prog.println("[" + ctr + "] " + "*** ANSWER=" + showTerm(A));
+//System.out.println("[" + ctr + "] " + "*** ANSWER=" + showTerm(A));
     }
-    if(ctr>5) Prog.println("...");
-    Prog.println("TOTAL ANSWERS=" + ctr);
+    System.out.println("TOTAL ANSWERS=" + ctr);
   }
 
   // indexing extensions - ony active if START_INDEX clauses or more
@@ -1016,15 +1071,16 @@ class Engine {
   }
 
   final IMap<Integer>[] index(final Clause[] clauses, final IntMap[] vmaps) {
+trace("index", clauses.length);
     if (clauses.length < START_INDEX)
       return null;
 
     final IMap<Integer>[] imaps = IMap.create(vmaps.length);
     for (int i = 0; i < clauses.length; i++) {
       final Clause c = clauses[i];
-
+      //Main.pp("!!!xs=" + java.util.Arrays.toString(c.xs) + ":" + showCells(c.xs) + "=>" + i);
       put(imaps, vmaps, c.xs, i + 1); // $$$ UGLY INC
-
+      //Main.pp(IMap.show(imaps));
     }
     Main.pp("INDEX");
     Main.pp(IMap.show(imaps));
@@ -1032,4 +1088,36 @@ class Engine {
     Main.pp("");
     return imaps;
   }
+
+    // CC debugging helpers
+    // match the output from hhprolog.js
+    static void trace(Object ...a) {
+        String s = "";
+        for (Object o: a)
+            s += (o != null ? o.toString() : "null") + " ";
+        System.out.println(s);
+    }
+    final private static String tagSym(final int t) {
+        switch(t) {
+        case V: return "V";
+        case U: return "U";
+        case R: return "R";
+        case C: return "C";
+        case N: return "N";
+        case A: return "A";
+        default: return "?";
+        }
+    }
+    final private static String heapCell(final int w) {
+        int t = tagOf(w);
+        int v = detag(w);
+        return tagSym(t)+":"+v+"["+w+"]";
+    }
+    final private String heap2s() {
+        //return "{top:" + top + ", heap:" + Arrays.toString(Arrays.copyOfRange(heap,0,50)).replaceAll("\\s","") + "}";
+        ArrayList<String> t = new ArrayList<String>();
+        for (int i = 0; i < top; ++i)
+            t.add(heapCell(heap[i]));
+        return "[" + top + " " + String.join(",", t) + "]";
+    }
 }

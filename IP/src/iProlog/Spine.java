@@ -1,4 +1,5 @@
-package iProlog;
+import java.util.Arrays;
+
 /**
  * runtime representation of an immutable list of goals
  * together with top of heap and trail pointers
@@ -14,6 +15,7 @@ class Spine {
    * creates a spine - as a snapshot of some runtime elements
    */
   Spine(final int[] gs0, final int base, final IntList gs, final int ttop, final int k, final int[] cs) {
+//Engine.trace("Spine6", Arrays.toString(gs0), base, gs, ttop, k, Arrays.toString(cs));
     hd = gs0[0];
     this.base = base;
     this.gs = IntList.tail(IntList.app(gs0, gs)); // prepends the goals of clause with head hs
@@ -26,6 +28,7 @@ class Spine {
    * creates a specialized spine returning an answer (with no goals left to solve)
    */
   Spine(final int hd, final int ttop) {
+//Engine.trace("Spine2", hd, ttop);
     this.hd = hd;
     base = 0;
     gs = IntList.empty;
@@ -45,4 +48,16 @@ class Spine {
 
   int[] xs; // index elements
   int[] cs; // array of  clauses known to be unifiable with top goal in gs
+
+  @Override
+  public String toString() {
+      return
+        "{ hd:" + hd +
+        ", base:" + base +
+        ", gs:" + Arrays.toString(IntList.toInts(gs).toArray()) +
+        ", ttop:" + ttop +
+        ", k:" + k +
+        ", xs:" + Arrays.toString(xs) +
+        ", cs:" + Arrays.toString(cs) + "}";
+  }
 }

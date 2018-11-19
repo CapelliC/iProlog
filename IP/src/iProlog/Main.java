@@ -1,4 +1,3 @@
-package iProlog;
 import java.util.stream.Stream;
 
 public class Main {
@@ -20,7 +19,7 @@ public class Main {
     if (p) {
       P = new Prog(fname);
       pp("CODE");
-      ((Prog) P).ppCode();
+      //((Prog) P).ppCode();
     } else {
       P = new Engine(fname);
     }
@@ -51,7 +50,16 @@ public class Main {
   }
 
   public static void main(final String[] args) {
-		String fname=args[0];
+
+System.out.println("Working Directory = " +
+              System.getProperty("user.dir"));
+                    
+    final String path = "/home/carlo/test/java/prologEngine/progs/";
+    String fname;
+    if (args.length == 0)
+      fname = path + "perms.pl";
+    else
+      fname = path + args[0];
     run(fname);
   }
 }
